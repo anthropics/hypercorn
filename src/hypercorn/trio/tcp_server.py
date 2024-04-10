@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sys import exception
 from math import inf
 from typing import Any, Generator, Optional
 
@@ -68,9 +69,11 @@ class TCPServer:
                 await self.protocol.initiate()
                 await self._start_idle()
                 await self._read_data()
-        except OSError:
+        except (OSError, BaseExceptionGroup):
             pass
         finally:
+            if e := exception():
+                print(f"DO NOT SUBMT. Exception: {e}")
             await self._close()
 
     async def protocol_send(self, event: Event) -> None:
