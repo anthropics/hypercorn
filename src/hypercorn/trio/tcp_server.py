@@ -68,7 +68,9 @@ class TCPServer:
                 await self.protocol.initiate()
                 await self._start_idle()
                 await self._read_data()
-        except OSError:
+	# TODO: Catching BaseExceptionGroup is a modification on the anthropic fork that works around an
+	# issue that we don't fully understand. See #inc-273-hypercorn-crashing-mycros
+        except (OSError, BaseExceptionGroup):
             pass
         finally:
             await self._close()
