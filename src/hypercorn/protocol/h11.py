@@ -235,7 +235,8 @@ class H11Protocol:
                 raw_path=request.target,
             )
         )
-        self.keep_alive_requests += 1
+        if self.config.keep_alive_max_requests:
+            self.keep_alive_requests += 1
         await self.context.mark_request()
 
     async def _send_h11_event(self, event: H11SendableEvent) -> None:
