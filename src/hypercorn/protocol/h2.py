@@ -119,6 +119,11 @@ class H2Protocol:
         self.priority = priority.PriorityTree()
         self.stream_buffers: Dict[int, StreamBuffer] = {}
 
+    def _incr_keep_alive_requests(self):
+        if not self.config.keep_alive_max_requests:
+            return
+        self.keep_alive_requests += 1
+
     @property
     def idle(self) -> bool:
         return len(self.streams) == 0 or all(stream.idle for stream in self.streams.values())
@@ -353,8 +358,9 @@ class H2Protocol:
                 raw_path=raw_path,
             )
         )
-        self.keep_alive_requests += 1
+        self._incr_keep_alive_requests()
         await self.context.mark_request()
+
 
     async def _create_server_push(
         self, stream_id: int, path: bytes, headers: List[Tuple[bytes, bytes]]
@@ -380,7 +386,7 @@ class H2Protocol:
             event.headers = request_headers
             await self._create_stream(event)
             await self.streams[event.stream_id].handle(EndBody(stream_id=event.stream_id))
-            self.keep_alive_requests += 1
+            self._incr_keep_alive_requests()
 
     async def _close_stream(self, stream_id: int) -> None:
         if stream_id in self.streams:
