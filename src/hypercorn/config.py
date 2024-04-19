@@ -101,6 +101,7 @@ class Config:
     startup_timeout = 60 * SECONDS
     statsd_host: Optional[str] = None
     statsd_prefix = ""
+    tcp_nodelay: bool = False
     umask: Optional[int] = None
     use_reloader = False
     user: Optional[int] = None
@@ -246,7 +247,8 @@ class Config:
                 except (ValueError, IndexError):
                     host, port = bind, 8000
                 sock = socket.socket(socket.AF_INET6 if ":" in host else socket.AF_INET, type_)
-                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                if self.tcp_nodelay:
+                    sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
                 if self.workers > 1:
                     try:
                         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
